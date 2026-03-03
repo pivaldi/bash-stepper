@@ -43,11 +43,11 @@ source ./st.bash
 st.h1 "Starting Deployment"
 
 st.doing "Building application"
-./build.sh
+st.do ./build.sh
 st.done
 
 st.doing "Running tests"
-./test.sh
+st.do ./test.sh
 st.done "TESTS PASSED"
 
 st.h2 "Deployment complete!"
@@ -137,11 +137,11 @@ st.do ./my-script.sh arg1 arg2       # Fails script if command fails
 st.h1 "Setup Process"
 
 st.doing "Installing dependencies"
-npm install
+st.do npm install
 st.done
 
 st.doing "Configuring environment"
-cp .env.example .env
+st.do cp .env.example .env
 st.done "CONFIGURED"
 ```
 
@@ -163,7 +163,7 @@ st.doing "Updating configuration"
 if [ -f .env ]; then
     st.nothingTodo
 else
-    cp .env.example .env
+    st.do cp .env.example .env
     st.done
 fi
 ```
@@ -175,7 +175,7 @@ st.doing "Running optional optimization"
 if [ "$SKIP_OPTIMIZATION" = "1" ]; then
     st.skipped
 else
-    ./optimize.sh
+    st.do ./optimize.sh
     st.done
 fi
 ```
