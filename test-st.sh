@@ -196,7 +196,7 @@ test_done_with_default_message() {
 
     assert_contains "$output" "st.done>" "should contain st.done>"
     assert_contains "$output" "Previous action" "should contain action name"
-    assert_contains "$output" "DONE" "should contain DONE"
+    assert_contains "$output" "[DONE]" "should contain [DONE]"
 }
 
 test_done_with_custom_message() {
@@ -209,10 +209,13 @@ test_done_with_custom_message() {
 }
 
 test_nothingTodo_outputs_correct_format() {
+    DOING_MSG="Check prerequisites"
     local output
-    output=$(st.nothingTodo 2>&1 || true)
+    output=$(st.nothingTodo)
 
-    assert_contains "$output" "Nothing to do" "should contain 'Nothing to do'"
+    assert_contains "$output" "st.nothingtd>" "should contain st.nothingtd>"
+    assert_contains "$output" "Check prerequisites" "should contain action name"
+    assert_contains "$output" "[NOTHING TO DO]" "should contain [NOTHING TO DO]"
 }
 
 test_skipped_outputs_correct_format() {
@@ -220,30 +223,51 @@ test_skipped_outputs_correct_format() {
     local output
     output=$(st.skipped)
 
-    assert_contains "$output" "st.skiped>" "should contain st.skiped>"
+    assert_contains "$output" "st.skipped>" "should contain st.skipped>"
     assert_contains "$output" "Skipped action" "should contain action name"
-    assert_contains "$output" "SKIPPED" "should contain SKIPPED"
+    assert_contains "$output" "[SKIPPED]" "should contain [SKIPPED]"
 }
 
 test_warn_outputs_correct_format() {
-    DOING_MSG="Warning test"
     local output
     output=$(st.warn "This is a warning")
 
     assert_contains "$output" "st.warn>" "should contain st.warn>"
-    assert_contains "$output" "Warning test" "should contain action name"
     assert_contains "$output" "This is a warning" "should contain warning text"
 }
 
-test_fail_exits_with_error() {
+test_fail_returns_error() {
+    DOING_MSG="Test operation"
     local output
     local exit_code
-    output=$(st.fail "Test failure" 2>&1) || exit_code=$?
+    output=$(st.fail "Test failure") || exit_code=$?
+
+    assert_exit_code 1 "${exit_code:-0}" "should return exit code 1"
+    assert_contains "$output" "st.fail" "should contain st.fail>"
+    assert_contains "$output" "Test operation" "should contain action name"
+    assert_contains "$output" "Test failure" "should contain failure message"
+}
+
+test_fail_with_default_message() {
+    DOING_MSG="Another operation"
+    local output
+    local exit_code
+    output=$(st.fail) || exit_code=$?
+
+    assert_exit_code 1 "${exit_code:-0}" "should return exit code 1"
+    assert_contains "$output" "st.fail" "should contain st.fail>"
+    assert_contains "$output" "Another operation" "should contain action name"
+    assert_contains "$output" "[FAILED]" "should contain [FAILED]"
+}
+
+test_abort_exits_with_error() {
+    local output
+    local exit_code
+    output=$(st.abort "Test abort" 2>&1) || exit_code=$?
 
     assert_exit_code 1 "${exit_code:-0}" "should exit with code 1"
-    assert_contains "$output" "st.fail>" "should contain st.fail>"
-    assert_contains "$output" "Test failure" "should contain failure message"
-    assert_contains "$output" "PROCESS ABORTED" "should contain PROCESS ABORTED"
+    assert_contains "$output" "st.abort>" "should contain st.abort>"
+    assert_contains "$output" "Test abort" "should contain abort message"
 }
 
 test_do_executes_command() {
@@ -262,12 +286,28 @@ test_do_with_multiple_arguments() {
     assert_contains "$output" "arg1 arg2 arg3" "should show all arguments"
 }
 
+test_success_outputs_correct_format() {
+    local output
+    output=$(st.success "Deployment complete")
+
+    assert_contains "$output" "st.success>" "should contain st.success>"
+    assert_contains "$output" "Deployment complete" "should contain success message"
+}
+
+test_success_with_default_message() {
+    local output
+    output=$(st.success)
+
+    assert_contains "$output" "st.success>" "should contain st.success>"
+    assert_contains "$output" "[SUCCESS]" "should contain [SUCCESS]"
+}
+
 test_workflow_doing_then_done() {
     local output
     output=$(st.doing "Test workflow" && st.done)
 
     assert_contains "$output" "Test workflow" "should show workflow name"
-    assert_contains "$output" "DONE" "should show done"
+    assert_contains "$output" "[DONE]" "should show [DONE]"
 }
 
 test_multiple_doing_updates_variable() {
@@ -333,10 +373,14 @@ main() {
     run_test "st.doing sets DOING_MSG variable" test_doing_sets_variable
     run_test "st.done with default message" test_done_with_default_message
     run_test "st.done with custom message" test_done_with_custom_message
+    run_test "st.success with custom message" test_success_outputs_correct_format
+    run_test "st.success with default message" test_success_with_default_message
     run_test "st.nothingTodo outputs correct format" test_nothingTodo_outputs_correct_format
     run_test "st.skipped outputs correct format" test_skipped_outputs_correct_format
     run_test "st.warn outputs correct format" test_warn_outputs_correct_format
-    run_test "st.fail exits with error" test_fail_exits_with_error
+    run_test "st.fail returns error" test_fail_returns_error
+    run_test "st.fail with default message" test_fail_with_default_message
+    run_test "st.abort exits with error" test_abort_exits_with_error
 
     # Command execution tests
     run_test "st.do executes command" test_do_executes_command

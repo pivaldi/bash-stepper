@@ -55,7 +55,7 @@ setup() {
 
     [ "$status" -eq 0 ]
     [[ "$output" == *"st.doing>"* ]]
-    [[ "$output" == *"Doing « Test Action »…"* ]]
+    [[ "$output" == *"Test Action"* ]]
 }
 
 @test "st.doing sets DOING_MSG variable" {
@@ -71,7 +71,7 @@ setup() {
 
     [ "$status" -eq 0 ]
     [[ "$output" == *"st.done>"* ]]
-    [[ "$output" == *"Previous action : DONE"* ]]
+    [[ "$output" == *"Previous action : [DONE]"* ]]
 }
 
 @test "st.done outputs custom message" {
@@ -85,11 +85,13 @@ setup() {
 
 # Test st.nothingTodo function
 @test "st.nothingTodo outputs correct format" {
+    DOING_MSG="Check prerequisites"
     run st.nothingTodo
 
     [ "$status" -eq 0 ]
-    [[ "$output" == *"nothingtd>"* ]]
-    [[ "$output" == *"Nothing to do"* ]]
+    [[ "$output" == *"st.nothingtd>"* ]]
+    [[ "$output" == *"Check prerequisites"* ]]
+    [[ "$output" == *"[NOTHING TO DO]"* ]]
 }
 
 # Test st.skipped function
@@ -98,30 +100,65 @@ setup() {
     run st.skipped
 
     [ "$status" -eq 0 ]
-    [[ "$output" == *"st.skiped>"* ]]
+    [[ "$output" == *"st.skipped>"* ]]
     [[ "$output" == *"Skipped action"* ]]
-    [[ "$output" == *"SKIPPED"* ]]
+    [[ "$output" == *"[SKIPPED]"* ]]
 }
 
 # Test st.warn function
 @test "st.warn outputs correct format" {
-    DOING_MSG="Warning test"
     run st.warn "This is a warning"
 
     [ "$status" -eq 0 ]
     [[ "$output" == *"st.warn>"* ]]
-    [[ "$output" == *"Warning test"* ]]
     [[ "$output" == *"This is a warning"* ]]
 }
 
 # Test st.fail function
-@test "st.fail outputs error and exits with non-zero" {
+@test "st.fail returns error without exiting" {
+    DOING_MSG="Test operation"
     run st.fail "Test failure message"
 
     [ "$status" -eq 1 ]
-    [[ "$output" == *"st.fail>"* ]]
+    [[ "$output" == *"st.fail"* ]]
+    [[ "$output" == *"Test operation"* ]]
     [[ "$output" == *"Test failure message"* ]]
-    [[ "$output" == *"PROCESS ABORTED"* ]]
+}
+
+@test "st.fail with default message" {
+    DOING_MSG="Another operation"
+    run st.fail
+
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"st.fail"* ]]
+    [[ "$output" == *"Another operation"* ]]
+    [[ "$output" == *"[FAILED]"* ]]
+}
+
+# Test st.abort function
+@test "st.abort exits with error" {
+    run st.abort "Test abort message"
+
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"st.abort>"* ]]
+    [[ "$output" == *"Test abort message"* ]]
+}
+
+# Test st.success function
+@test "st.success outputs correct format" {
+    run st.success "Deployment complete"
+
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"st.success>"* ]]
+    [[ "$output" == *"Deployment complete"* ]]
+}
+
+@test "st.success with default message" {
+    run st.success
+
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"st.success>"* ]]
+    [[ "$output" == *"[SUCCESS]"* ]]
 }
 
 # Test st.do function
@@ -152,22 +189,22 @@ setup() {
 @test "Complete workflow: doing -> done" {
     output=$(st.doing "Test workflow" && st.done)
 
-    [[ "$output" == *"Doing « Test workflow »…"* ]]
-    [[ "$output" == *"Test workflow : DONE"* ]]
+    [[ "$output" == *"Test workflow"* ]]
+    [[ "$output" == *"Test workflow : [DONE]"* ]]
 }
 
 @test "Complete workflow: doing -> nothingTodo" {
     output=$(st.doing "Check something" && st.nothingTodo)
 
-    [[ "$output" == *"Doing « Check something »…"* ]]
-    [[ "$output" == *"Nothing to do"* ]]
+    [[ "$output" == *"Check something"* ]]
+    [[ "$output" == *"[NOTHING TO DO]"* ]]
 }
 
 @test "Complete workflow: doing -> skipped" {
     output=$(st.doing "Optional step" && st.skipped)
 
-    [[ "$output" == *"Doing « Optional step »…"* ]]
-    [[ "$output" == *"SKIPPED"* ]]
+    [[ "$output" == *"Optional step"* ]]
+    [[ "$output" == *"[SKIPPED]"* ]]
 }
 
 # Test with actual commands

@@ -57,27 +57,27 @@ st.success "Deployment complete!"
 ```
 st.h1> Starting Deployment
 
-st.doing>  Doing « Building application »…
+st.doing> Building application
 
-st.done> Building application : DONE
+st.done> Building application : [DONE]
 
-st.doing>  Doing « Running tests »…
+st.doing> Running tests
 
 st.done> Running tests : TESTS PASSED
 
-st.h2> Deployment complete!
+st.success> Deployment complete!
 ```
-*(In terminal, headers and text will appear in bold)*
+*(In terminal, headers and text will appear in bold with colors)*
 
 **Output (piped or in logs):**
 ```
 st.h1> Starting Deployment
 
-st.doing>  Doing « Building application »…
+st.doing> Building application
 
-st.done> Building application : DONE
+st.done> Building application : [DONE]
 
-st.doing>  Doing « Running tests »…
+st.doing> Running tests
 
 st.done> Running tests : TESTS PASSED
 
@@ -104,8 +104,10 @@ Track the progress of operations:
 ```bash
 st.doing "Connecting to database"   # Start an operation
 # ... do work ...
-st.done                              # Mark as complete (uses "DONE")
+st.done                              # Mark as complete (uses "[DONE]")
 st.done "CONNECTED"                  # Mark as complete with custom message
+st.success                           # Success message (uses "[SUCCESS]")
+st.success "Deployment complete"     # Custom success message
 ```
 
 ### Status Messages
@@ -113,20 +115,25 @@ st.done "CONNECTED"                  # Mark as complete with custom message
 Communicate different outcomes:
 
 ```bash
-st.nothingTodo                       # Indicate no action needed
-st.skipped                           # Mark operation as skipped
-st.warn "Deprecation warning"        # Display a warning
-st.fail "Connection failed"          # Display error and exit(1)
+st.nothingTodo                       # Indicate no action needed (uses "[NOTHING TO DO]")
+st.nothingTodo "Already configured"  # Custom message
+st.skipped                           # Mark operation as skipped (uses "[SKIPPED]")
+st.skipped "Not applicable"          # Custom message
+st.warn "Deprecation warning"        # Display a warning (standalone)
+st.fail                              # Display error (uses "[FAILED]"), returns false
+st.fail "Connection failed"          # Custom error message, returns false
+st.abort                             # Abort with error (uses "[ABORTED]"), exits with code 1
+st.abort "Critical error"            # Custom abort message, exits with code 1
 ```
 
 ### Command Execution
 
-Execute commands with automatic output display:
+Execute commands with output display:
 
 ```bash
 st.do npm install                    # Shows command before executing
 st.do docker build -t myapp .        # Handles multi-argument commands
-st.do ./my-script.sh arg1 arg2       # Fails script if command fails
+# Note: st.do just executes the command, check $? for success/failure
 ```
 
 ## Workflow Patterns
@@ -137,12 +144,9 @@ st.do ./my-script.sh arg1 arg2       # Fails script if command fails
 st.h1 "Setup Process"
 
 st.doing "Installing dependencies"
-st.do npm install
-st.done
-
+st.do npm install && st.done || st.fail
 st.doing "Configuring environment"
-st.do cp .env.example .env
-st.done "CONFIGURED"
+st.do cp .env.example .env && st.done "CONFIGURED" || st.fail
 ```
 
 ### Conditional Operations
@@ -153,6 +157,7 @@ if command -v docker &>/dev/null; then
     st.done "FOUND"
 else
     st.fail "Docker not installed"
+    exit 1  # Exit if this is critical
 fi
 ```
 
@@ -221,7 +226,9 @@ The library includes a comprehensive test suite:
 bats st_test.bats
 ```
 
-For detailed testing information, see [TEST-README.md](TEST-README.md).
+Both test suites include comprehensive coverage:
+- **test-st.sh**: 24 tests covering all functions and workflows
+- **st_test.bats**: 30 tests including performance and edge cases
 
 ## Design Philosophy
 
@@ -238,7 +245,7 @@ Terminal detection using `[ -t 1 ]` means:
 
 ### Fail-Fast
 
-`st.fail` exits immediately with code 1, and `st.do` fails if commands fail. This prevents cascading errors in deployment scripts.
+`st.fail` returns false (exit code 1) but doesn't exit the script - you control whether to continue or exit. Use `st.abort` when you need to exit immediately. The `st.do` command executes commands and returns their exit code - check `$?` to handle failures appropriately.
 
 ## Real-World Example
 
@@ -255,6 +262,7 @@ st.h2 "Pre-flight Checks"
 st.doing "Verifying Docker installation"
 if ! command -v docker &>/dev/null; then
     st.fail "Docker is not installed"
+    exit 1
 fi
 st.done
 
