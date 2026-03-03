@@ -55,7 +55,7 @@ setup() {
 
     [ "$status" -eq 0 ]
     [[ "$output" == *"st.doing>"* ]]
-    [[ "$output" == *"Doing « Test Action »…"* ]]
+    [[ "$output" == *"Doing « Test Action »…"* ]]
 }
 
 @test "st.doing sets DOING_MSG variable" {
@@ -71,7 +71,7 @@ setup() {
 
     [ "$status" -eq 0 ]
     [[ "$output" == *"st.done>"* ]]
-    [[ "$output" == *"Previous action : DONE"* ]]
+    [[ "$output" == *"Previous action : DONE"* ]]
 }
 
 @test "st.done outputs custom message" {
@@ -79,7 +79,7 @@ setup() {
     run st.done "COMPLETED"
 
     [ "$status" -eq 0 ]
-    [[ "$output" == *"Custom action : COMPLETED"* ]]
+    [[ "$output" == *"Custom action : COMPLETED"* ]]
 }
 
 
@@ -152,21 +152,21 @@ setup() {
 @test "Complete workflow: doing -> done" {
     output=$(st.doing "Test workflow" && st.done)
 
-    [[ "$output" == *"Doing « Test workflow »…"* ]]
-    [[ "$output" == *"Test workflow : DONE"* ]]
+    [[ "$output" == *"Doing « Test workflow »…"* ]]
+    [[ "$output" == *"Test workflow : DONE"* ]]
 }
 
 @test "Complete workflow: doing -> nothingTodo" {
     output=$(st.doing "Check something" && st.nothingTodo)
 
-    [[ "$output" == *"Doing « Check something »…"* ]]
+    [[ "$output" == *"Doing « Check something »…"* ]]
     [[ "$output" == *"Nothing to do"* ]]
 }
 
 @test "Complete workflow: doing -> skipped" {
     output=$(st.doing "Optional step" && st.skipped)
 
-    [[ "$output" == *"Doing « Optional step »…"* ]]
+    [[ "$output" == *"Doing « Optional step »…"* ]]
     [[ "$output" == *"SKIPPED"* ]]
 }
 

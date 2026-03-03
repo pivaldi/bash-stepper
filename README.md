@@ -2,7 +2,7 @@
 
 A lightweight Bash library for creating beautiful, structured output in shell scripts with automatic terminal detection.
 
-**Note**: [stream-stepper](https://github.com/pivaldi/stream-stepper), a Go implementation with streaming with progress-bar, has a processor supporting this lib.
+**Note**: [stream-stepper](https://github.com/pivaldi/stream-stepper), a Go implementation with streaming and progress-bar, has a processor supporting this lib.
 
 ## Features
 
