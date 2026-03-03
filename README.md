@@ -50,7 +50,7 @@ st.doing "Running tests"
 st.do ./test.sh
 st.done "TESTS PASSED"
 
-st.h2 "Deployment complete!"
+st.success "Deployment complete!"
 ```
 
 **Output (in terminal):**
@@ -81,7 +81,7 @@ st.doing>  Doing « Running tests »…
 
 st.done> Running tests : TESTS PASSED
 
-st.h2> Deployment complete!
+st.success> Deployment complete!
 ```
 *(No colors or formatting codes in piped output)*
 
@@ -282,7 +282,7 @@ st.doing "Pushing to registry"
 st.do docker push myapp:v1.0.0
 st.done
 
-st.h1 "Deployment Complete! 🚀"
+st.success "Deployment Complete! 🚀"
 ```
 
 ## Requirements
