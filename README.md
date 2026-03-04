@@ -115,8 +115,8 @@ st.success "Deployment complete"     # Custom success message
 Communicate different outcomes:
 
 ```bash
-st.nothingTodo                       # Indicate no action needed (uses "[NOTHING TO DO]")
-st.nothingTodo "Already configured"  # Custom message
+st.nothing                       # Indicate no action needed (uses "[NOTHING TO DO]")
+st.nothing "Already configured"  # Custom message
 st.skipped                           # Mark operation as skipped (uses "[SKIPPED]")
 st.skipped "Not applicable"          # Custom message
 st.warn "Deprecation warning"        # Display a warning (standalone)
@@ -166,7 +166,7 @@ fi
 ```bash
 st.doing "Updating configuration"
 if [ -f .env ]; then
-    st.nothingTodo
+    st.nothing
 else
     st.do cp .env.example .env
     st.done

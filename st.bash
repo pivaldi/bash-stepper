@@ -8,6 +8,7 @@ GREEN=
 YELLOW=
 BLUE=
 BLUE_CYAN=
+GRAY_LIGHT=
 
 if [ -t 1 ]; then
     BOLD=$(tput bold)
@@ -33,9 +34,19 @@ if [ -t 1 ]; then
         tput bold
         tput setaf 6
     )"
+    GRAY_LIGHT="$(tput setaf 250)"
 fi
 
 DOING_MSG=
+
+function st.cmd.exists() {
+    command -v "$1" >/dev/null 2>&1
+}
+
+## Usage: st.var.exists A_VAR && echo PASS
+function st.var.exists() {
+    [ -n "${!1:-}" ]
+}
 
 function st.h1() {
     echo -e "st.h1> ${BOLD}$1${OFFBOLD}"
@@ -67,7 +78,7 @@ function st.success() {
     echo "st.success> ${BOLD}${GREEN}${MSG}${RESET_COLOR}${OFFBOLD}"
 }
 
-function st.nothingTodo() {
+function st.nothing() {
     local MSG="${1:-[NOTHING TO DO]}"
     echo "st.nothingtd> ${DOING_MSG:-} : ${GREEN}${MSG}${RESET_COLOR}"
 }
@@ -97,6 +108,6 @@ function st.abort() {
 
 function st.do() {
     local -a cmd=("$@")
-    echo "st.do> ${BLUE_CYAN}${cmd[*]}${RESET_COLOR}"
+    echo "st.do> ${GRAY_LIGHT}${cmd[*]}${RESET_COLOR}"
     "${cmd[@]}"
 }

@@ -83,10 +83,10 @@ setup() {
 }
 
 
-# Test st.nothingTodo function
-@test "st.nothingTodo outputs correct format" {
+# Test st.nothing function
+@test "st.nothing outputs correct format" {
     DOING_MSG="Check prerequisites"
-    run st.nothingTodo
+    run st.nothing
 
     [ "$status" -eq 0 ]
     [[ "$output" == *"st.nothingtd>"* ]]
@@ -194,7 +194,7 @@ setup() {
 }
 
 @test "Complete workflow: doing -> nothingTodo" {
-    output=$(st.doing "Check something" && st.nothingTodo)
+    output=$(st.doing "Check something" && st.nothing)
 
     [[ "$output" == *"Check something"* ]]
     [[ "$output" == *"[NOTHING TO DO]"* ]]
