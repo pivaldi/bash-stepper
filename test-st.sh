@@ -149,6 +149,52 @@ test_colors_disabled_in_non_terminal() {
     assert_empty "$YELLOW" "YELLOW should be empty"
     assert_empty "$BLUE" "BLUE should be empty"
     assert_empty "$BLUE_CYAN" "BLUE_CYAN should be empty"
+    assert_empty "$GRAY_LIGHT" "GRAY_LIGHT should be empty"
+}
+
+test_cmd_exists_returns_true_for_existing_command() {
+    st.cmd.exists bash
+    assert_exit_code 0 $? "should return 0 for existing command"
+}
+
+test_cmd_exists_returns_false_for_nonexisting_command() {
+    st.cmd.exists nonexistent_command_12345 && local result=$? || local result=$?
+    assert_exit_code 1 $result "should return 1 for non-existing command"
+}
+
+test_cmd_exists_works_in_conditional() {
+    local result="not_found"
+    if st.cmd.exists echo; then
+        result="found"
+    fi
+    assert_equals "found" "$result" "should work in conditional"
+}
+
+test_var_exists_returns_true_for_existing_variable() {
+    TEST_VAR="some value"
+    st.var.exists TEST_VAR
+    assert_exit_code 0 $? "should return 0 for existing variable"
+}
+
+test_var_exists_returns_false_for_unset_variable() {
+    unset NONEXISTENT_VAR
+    st.var.exists NONEXISTENT_VAR && local result=$? || local result=$?
+    assert_exit_code 1 $result "should return 1 for unset variable"
+}
+
+test_var_exists_returns_false_for_empty_variable() {
+    EMPTY_VAR=""
+    st.var.exists EMPTY_VAR && local result=$? || local result=$?
+    assert_exit_code 1 $result "should return 1 for empty variable"
+}
+
+test_var_exists_works_in_conditional() {
+    MY_VAR="test"
+    local result="not_exists"
+    if st.var.exists MY_VAR; then
+        result="exists"
+    fi
+    assert_equals "exists" "$result" "should work in conditional"
 }
 
 test_h1_outputs_correct_format() {
@@ -218,6 +264,15 @@ test.nothing_outputs_correct_format() {
     assert_contains "$output" "[NOTHING TO DO]" "should contain [NOTHING TO DO]"
 }
 
+test.nothing_with_custom_message() {
+    DOING_MSG="Check configuration"
+    local output
+    output=$(st.nothing "Already configured")
+
+    assert_contains "$output" "Check configuration" "should contain action name"
+    assert_contains "$output" "Already configured" "should contain custom message"
+}
+
 test_skipped_outputs_correct_format() {
     DOING_MSG="Skipped action"
     local output
@@ -226,6 +281,15 @@ test_skipped_outputs_correct_format() {
     assert_contains "$output" "st.skipped>" "should contain st.skipped>"
     assert_contains "$output" "Skipped action" "should contain action name"
     assert_contains "$output" "[SKIPPED]" "should contain [SKIPPED]"
+}
+
+test_skipped_with_custom_message() {
+    DOING_MSG="Optional optimization"
+    local output
+    output=$(st.skipped "Not applicable")
+
+    assert_contains "$output" "Optional optimization" "should contain action name"
+    assert_contains "$output" "Not applicable" "should contain custom message"
 }
 
 test_warn_outputs_correct_format() {
@@ -284,6 +348,21 @@ test_do_with_multiple_arguments() {
     output=$(st.do echo "arg1" "arg2" "arg3" 2>&1)
 
     assert_contains "$output" "arg1 arg2 arg3" "should show all arguments"
+}
+
+test_do_returns_command_exit_code_on_failure() {
+    st.do false 2>&1 || local exit_code=$?
+    assert_exit_code 1 ${exit_code:-0} "should return exit code 1 for false command"
+}
+
+test_do_returns_command_exit_code_on_success() {
+    st.do true 2>&1
+    assert_exit_code 0 $? "should return exit code 0 for true command"
+}
+
+test_do_passes_through_custom_exit_codes() {
+    st.do sh -c "exit 42" 2>&1 || local exit_code=$?
+    assert_exit_code 42 ${exit_code:-0} "should pass through exit code 42"
 }
 
 test_success_outputs_correct_format() {
@@ -363,6 +442,15 @@ main() {
     # Color tests (automatic based on terminal detection)
     run_test "Colors disabled in non-terminal" test_colors_disabled_in_non_terminal
 
+    # Helper function tests
+    run_test "st.cmd.exists returns true for existing command" test_cmd_exists_returns_true_for_existing_command
+    run_test "st.cmd.exists returns false for non-existing command" test_cmd_exists_returns_false_for_nonexisting_command
+    run_test "st.cmd.exists works in conditional" test_cmd_exists_works_in_conditional
+    run_test "st.var.exists returns true for existing variable" test_var_exists_returns_true_for_existing_variable
+    run_test "st.var.exists returns false for unset variable" test_var_exists_returns_false_for_unset_variable
+    run_test "st.var.exists returns false for empty variable" test_var_exists_returns_false_for_empty_variable
+    run_test "st.var.exists works in conditional" test_var_exists_works_in_conditional
+
     # Header tests
     run_test "st.h1 outputs correct format" test_h1_outputs_correct_format
     run_test "st.h2 outputs correct format" test_h2_outputs_correct_format
@@ -376,7 +464,9 @@ main() {
     run_test "st.success with custom message" test_success_outputs_correct_format
     run_test "st.success with default message" test_success_with_default_message
     run_test "st.nothing outputs correct format" test.nothing_outputs_correct_format
+    run_test "st.nothing with custom message" test.nothing_with_custom_message
     run_test "st.skipped outputs correct format" test_skipped_outputs_correct_format
+    run_test "st.skipped with custom message" test_skipped_with_custom_message
     run_test "st.warn outputs correct format" test_warn_outputs_correct_format
     run_test "st.fail returns error" test_fail_returns_error
     run_test "st.fail with default message" test_fail_with_default_message
@@ -385,6 +475,9 @@ main() {
     # Command execution tests
     run_test "st.do executes command" test_do_executes_command
     run_test "st.do with multiple arguments" test_do_with_multiple_arguments
+    run_test "st.do returns command exit code on failure" test_do_returns_command_exit_code_on_failure
+    run_test "st.do returns command exit code on success" test_do_returns_command_exit_code_on_success
+    run_test "st.do passes through custom exit codes" test_do_passes_through_custom_exit_codes
 
     # Workflow tests
     run_test "Workflow: doing then done" test_workflow_doing_then_done

@@ -136,6 +136,28 @@ st.do docker build -t myapp .        # Handles multi-argument commands
 # Note: st.do just executes the command, check $? for success/failure
 ```
 
+### Helper Functions
+
+Utility functions for common checks:
+
+```bash
+st.cmd.exists docker                 # Returns 0 if command exists, 1 otherwise
+st.var.exists MY_VAR                 # Returns 0 if variable is set and non-empty, 1 otherwise
+
+# Use in conditionals
+if st.cmd.exists docker; then
+    st.success "Docker is installed"
+else
+    st.fail "Docker not found"
+fi
+
+if st.var.exists DATABASE_URL; then
+    st.done "DATABASE_URL is configured"
+else
+    st.warn "DATABASE_URL not set"
+fi
+```
+
 ## Workflow Patterns
 
 ### Basic Workflow
@@ -227,8 +249,8 @@ bats st_test.bats
 ```
 
 Both test suites include comprehensive coverage:
-- **test-st.sh**: 24 tests covering all functions and workflows
-- **st_test.bats**: 30 tests including performance and edge cases
+- **test-st.sh**: 36 tests covering all functions, helpers, and workflows
+- **st_test.bats**: 42 tests including performance, helper functions, and edge cases
 
 ## Design Philosophy
 

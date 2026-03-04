@@ -20,6 +20,63 @@ setup() {
     [ -z "$YELLOW" ]
     [ -z "$BLUE" ]
     [ -z "$BLUE_CYAN" ]
+    [ -z "$GRAY_LIGHT" ]
+}
+
+# Test st.cmd.exists function
+@test "st.cmd.exists returns true for existing command" {
+    run st.cmd.exists bash
+
+    [ "$status" -eq 0 ]
+}
+
+@test "st.cmd.exists returns false for non-existing command" {
+    run st.cmd.exists nonexistent_command_12345
+
+    [ "$status" -eq 1 ]
+}
+
+@test "st.cmd.exists works in conditional" {
+    if st.cmd.exists echo; then
+        result="found"
+    else
+        result="not_found"
+    fi
+
+    [ "$result" = "found" ]
+}
+
+# Test st.var.exists function
+@test "st.var.exists returns true for existing variable" {
+    TEST_VAR="some value"
+    run st.var.exists TEST_VAR
+
+    [ "$status" -eq 0 ]
+}
+
+@test "st.var.exists returns false for unset variable" {
+    unset NONEXISTENT_VAR
+    run st.var.exists NONEXISTENT_VAR
+
+    [ "$status" -eq 1 ]
+}
+
+@test "st.var.exists returns false for empty variable" {
+    EMPTY_VAR=""
+    run st.var.exists EMPTY_VAR
+
+    [ "$status" -eq 1 ]
+}
+
+@test "st.var.exists works in conditional" {
+    MY_VAR="test"
+    if st.var.exists MY_VAR; then
+        result="exists"
+    else
+        result="not_exists"
+    fi
+
+    [ "$result" = "exists" ]
 }
 
 # Test st.h1 function
@@ -94,6 +151,15 @@ setup() {
     [[ "$output" == *"[NOTHING TO DO]"* ]]
 }
 
+@test "st.nothing with custom message" {
+    DOING_MSG="Check configuration"
+    run st.nothing "Already configured"
+
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"Check configuration"* ]]
+    [[ "$output" == *"Already configured"* ]]
+}
+
 # Test st.skipped function
 @test "st.skipped outputs correct format" {
     DOING_MSG="Skipped action"
@@ -103,6 +169,15 @@ setup() {
     [[ "$output" == *"st.skipped>"* ]]
     [[ "$output" == *"Skipped action"* ]]
     [[ "$output" == *"[SKIPPED]"* ]]
+}
+
+@test "st.skipped with custom message" {
+    DOING_MSG="Optional optimization"
+    run st.skipped "Not applicable"
+
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"Optional optimization"* ]]
+    [[ "$output" == *"Not applicable"* ]]
 }
 
 # Test st.warn function
@@ -219,6 +294,24 @@ setup() {
 
     [ "$status" -eq 0 ]
     [[ "$output" == *"ls -la /tmp"* ]]
+}
+
+@test "st.do returns command exit code on failure" {
+    run st.do false
+
+    [ "$status" -eq 1 ]
+}
+
+@test "st.do returns command exit code on success" {
+    run st.do true
+
+    [ "$status" -eq 0 ]
+}
+
+@test "st.do passes through custom exit codes" {
+    run st.do sh -c "exit 42"
+
+    [ "$status" -eq 42 ]
 }
 
 # Edge cases
