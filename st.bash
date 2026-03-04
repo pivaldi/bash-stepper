@@ -8,6 +8,7 @@ GREEN=
 YELLOW=
 BLUE=
 BLUE_CYAN=
+GRAY_LIGHT=
 
 if [ -t 1 ]; then
     BOLD=$(tput bold)
@@ -33,6 +34,7 @@ if [ -t 1 ]; then
         tput bold
         tput setaf 6
     )"
+    GRAY_LIGHT="$(tput setaf 250)"
 fi
 
 DOING_MSG=
@@ -97,6 +99,6 @@ function st.abort() {
 
 function st.do() {
     local -a cmd=("$@")
-    echo "st.do> ${BLUE_CYAN}${cmd[*]}${RESET_COLOR}"
+    echo "st.do> ${GRAY_LIGHT}${cmd[*]}${RESET_COLOR}"
     "${cmd[@]}"
 }
