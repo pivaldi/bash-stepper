@@ -39,6 +39,15 @@ fi
 
 DOING_MSG=
 
+function st.cmd.exists() {
+    command -v "$1" >/dev/null 2>&1
+}
+
+## Usage: st.var.exists A_VAR && echo PASS
+function st.var.exists() {
+    [ -n "${!1:-}" ]
+}
+
 function st.h1() {
     echo -e "st.h1> ${BOLD}$1${OFFBOLD}"
 }
@@ -69,7 +78,7 @@ function st.success() {
     echo "st.success> ${BOLD}${GREEN}${MSG}${RESET_COLOR}${OFFBOLD}"
 }
 
-function st.nothingTodo() {
+function st.nothing() {
     local MSG="${1:-[NOTHING TO DO]}"
     echo "st.nothingtd> ${DOING_MSG:-} : ${GREEN}${MSG}${RESET_COLOR}"
 }

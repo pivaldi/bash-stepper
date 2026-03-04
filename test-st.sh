@@ -208,10 +208,10 @@ test_done_with_custom_message() {
     assert_contains "$output" "COMPLETED" "should contain custom message"
 }
 
-test_nothingTodo_outputs_correct_format() {
+test.nothing_outputs_correct_format() {
     DOING_MSG="Check prerequisites"
     local output
-    output=$(st.nothingTodo)
+    output=$(st.nothing)
 
     assert_contains "$output" "st.nothingtd>" "should contain st.nothingtd>"
     assert_contains "$output" "Check prerequisites" "should contain action name"
@@ -375,7 +375,7 @@ main() {
     run_test "st.done with custom message" test_done_with_custom_message
     run_test "st.success with custom message" test_success_outputs_correct_format
     run_test "st.success with default message" test_success_with_default_message
-    run_test "st.nothingTodo outputs correct format" test_nothingTodo_outputs_correct_format
+    run_test "st.nothing outputs correct format" test.nothing_outputs_correct_format
     run_test "st.skipped outputs correct format" test_skipped_outputs_correct_format
     run_test "st.warn outputs correct format" test_warn_outputs_correct_format
     run_test "st.fail returns error" test_fail_returns_error
