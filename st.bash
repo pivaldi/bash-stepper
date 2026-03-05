@@ -38,7 +38,7 @@ if [ -t 1 ]; then
 fi
 
 DOING_MSG=
-ST_QUIET="${ST_QUIET:-false}"
+: "${ST_QUIET:=false}"
 
 function st.quiet() {
     ST_QUIET=true
@@ -59,19 +59,19 @@ function st.var.exists() {
 
 function st.h1() {
     local prefix=
-    [ "$ST_QUIET" != "true" ] && prefix='st.h1> '
+    [[ "${ST_QUIET:-false}" != "true" ]] && prefix='st.h1> '
     echo -e "${prefix}${BOLD}$1${OFFBOLD}"
 }
 
 function st.h2() {
     local prefix=
-    [ "$ST_QUIET" != "true" ] && prefix='st.h2> '
+    [[ "${ST_QUIET:-false}" != "true" ]] && prefix='st.h2> '
     echo -e "${prefix}${BOLD}$1${OFFBOLD}"
 }
 
 function st.h3() {
     local prefix=
-    [ "$ST_QUIET" != "true" ] && prefix='st.h3> '
+    [[ "${ST_QUIET:-false}" != "true" ]] && prefix='st.h3> '
     echo -e "${prefix}${BOLD}$1${OFFBOLD}"
 }
 
@@ -79,7 +79,7 @@ function st.doing() {
     DOING_MSG=$1
 
     local prefix=
-    [ "$ST_QUIET" != "true" ] && prefix='st.doing> '
+    [[ "${ST_QUIET:-false}" != "true" ]] && prefix='st.doing> '
     echo "${prefix}${BLUE}${DOING_MSG:-…}$RESET_COLOR"
 }
 
@@ -87,7 +87,7 @@ function st.done() {
     local DONE="${1:-[DONE]}"
 
     local prefix=
-    [ "$ST_QUIET" != "true" ] && prefix='st.done> '
+    [[ "${ST_QUIET:-false}" != "true" ]] && prefix='st.done> '
     echo "${prefix}${DOING_MSG:-} : ${GREEN}$DONE${RESET_COLOR}"
 }
 
@@ -95,34 +95,34 @@ function st.success() {
     local MSG="${1:-[SUCCESS]}"
 
     local prefix=
-    [ "$ST_QUIET" != "true" ] && prefix='st.success> '
+    [[ "${ST_QUIET:-false}" != "true" ]] && prefix='st.success> '
     echo "${prefix}${BOLD}${GREEN}${MSG}${RESET_COLOR}${OFFBOLD}"
 }
 
 function st.nothing() {
     local MSG="${1:-[NOTHING TO DO]}"
     local prefix=
-    [ "$ST_QUIET" != "true" ] && prefix='st.nothingtd> '
+    [[ "${ST_QUIET:-false}" != "true" ]] && prefix='st.nothingtd> '
     echo "${prefix}${DOING_MSG:-} : ${GREEN}${MSG}${RESET_COLOR}"
 }
 
 function st.skipped() {
     local MSG="${1:-[SKIPPED]}"
     local prefix=
-    [ "$ST_QUIET" != "true" ] && prefix='st.skipped> '
+    [[ "${ST_QUIET:-false}" != "true" ]] && prefix='st.skipped> '
     echo "${prefix}${DOING_MSG:-} : ${BLUE_CYAN}${MSG}${RESET_COLOR}"
 }
 
 function st.warn() {
     local prefix=
-    [ "$ST_QUIET" != "true" ] && prefix='st.warn> '
+    [[ "${ST_QUIET:-false}" != "true" ]] && prefix='st.warn> '
     echo "${prefix}${BOLD}${YELLOW}$1${RESET_COLOR}${OFFBOLD}"
 }
 
 function st.fail() {
     local MSG="${1:-[FAILED]}"
     local prefix=
-    [ "$ST_QUIET" != "true" ] && prefix='st.fail '
+    [[ "${ST_QUIET:-false}" != "true" ]] && prefix='st.fail '
     echo -e "${prefix}${DOING_MSG:-} : ${RED}$MSG${RESET_COLOR}"
     false
 }
@@ -130,7 +130,7 @@ function st.fail() {
 function st.abort() {
     local MSG="${1:-[ABORTED]}"
     local prefix=
-    [ "$ST_QUIET" != "true" ] && prefix='st.abort> '
+    [[ "${ST_QUIET:-false}" != "true" ]] && prefix='st.abort> '
     echo -e "${prefix}${DOING_MSG:-} : ${BOLD}${RED}${MSG}${RESET_COLOR}${OFFBOLD}\n"
     false
 
@@ -140,7 +140,7 @@ function st.abort() {
 function st.do() {
     local -a cmd=("$@")
     local prefix=
-    [ "$ST_QUIET" != "true" ] && prefix='st.do> '
+    [[ "${ST_QUIET:-false}" != "true" ]] && prefix='st.do> '
     echo "${prefix}${GRAY_LIGHT}${cmd[*]}${RESET_COLOR}"
     "${cmd[@]}"
 }
