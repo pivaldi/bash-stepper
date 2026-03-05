@@ -368,3 +368,143 @@ setup() {
     elapsed=$((end - start))
     [ "$elapsed" -lt 100000000 ]
 }
+
+# Test ST_QUIET environment variable
+@test "ST_QUIET disables st.h1 prefix" {
+    ST_QUIET=1
+    source "$SCRIPT_DIR/st.bash"
+    run st.h1 "Test Header"
+
+    [ "$status" -eq 0 ]
+    [[ "$output" == "Test Header" ]]
+    [[ ! "$output" =~ "st.h1>" ]]
+}
+
+@test "ST_QUIET disables st.h2 prefix" {
+    ST_QUIET=1
+    source "$SCRIPT_DIR/st.bash"
+    run st.h2 "Test Header"
+
+    [ "$status" -eq 0 ]
+    [[ "$output" == "Test Header" ]]
+    [[ ! "$output" =~ "st.h2>" ]]
+}
+
+@test "ST_QUIET disables st.h3 prefix" {
+    ST_QUIET=1
+    source "$SCRIPT_DIR/st.bash"
+    run st.h3 "Test Header"
+
+    [ "$status" -eq 0 ]
+    [[ "$output" == "Test Header" ]]
+    [[ ! "$output" =~ "st.h3>" ]]
+}
+
+@test "ST_QUIET disables st.doing prefix" {
+    ST_QUIET=1
+    source "$SCRIPT_DIR/st.bash"
+    run st.doing "Test Action"
+
+    [ "$status" -eq 0 ]
+    [[ "$output" == "Test Action" ]]
+    [[ ! "$output" =~ "st.doing>" ]]
+}
+
+@test "ST_QUIET disables st.done prefix" {
+    ST_QUIET=1
+    source "$SCRIPT_DIR/st.bash"
+    DOING_MSG="Test Action"
+    run st.done
+
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"Test Action"* ]]
+    [[ "$output" == *"[DONE]"* ]]
+    [[ ! "$output" =~ "st.done>" ]]
+}
+
+@test "ST_QUIET disables st.success prefix" {
+    ST_QUIET=1
+    source "$SCRIPT_DIR/st.bash"
+    run st.success "Complete"
+
+    [ "$status" -eq 0 ]
+    [[ "$output" == "Complete" ]]
+    [[ ! "$output" =~ "st.success>" ]]
+}
+
+@test "ST_QUIET disables st.nothing prefix" {
+    ST_QUIET=1
+    source "$SCRIPT_DIR/st.bash"
+    DOING_MSG="Test Action"
+    run st.nothing
+
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"Test Action"* ]]
+    [[ "$output" == *"[NOTHING TO DO]"* ]]
+    [[ ! "$output" =~ "st.nothingtd>" ]]
+}
+
+@test "ST_QUIET disables st.skipped prefix" {
+    ST_QUIET=1
+    source "$SCRIPT_DIR/st.bash"
+    DOING_MSG="Test Action"
+    run st.skipped
+
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"Test Action"* ]]
+    [[ "$output" == *"[SKIPPED]"* ]]
+    [[ ! "$output" =~ "st.skipped>" ]]
+}
+
+@test "ST_QUIET disables st.warn prefix" {
+    ST_QUIET=1
+    source "$SCRIPT_DIR/st.bash"
+    run st.warn "Warning message"
+
+    [ "$status" -eq 0 ]
+    [[ "$output" == "Warning message" ]]
+    [[ ! "$output" =~ "st.warn>" ]]
+}
+
+@test "ST_QUIET disables st.fail prefix" {
+    ST_QUIET=1
+    source "$SCRIPT_DIR/st.bash"
+    DOING_MSG="Test Action"
+    run st.fail
+
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"Test Action"* ]]
+    [[ "$output" == *"[FAILED]"* ]]
+    [[ ! "$output" =~ "st.fail" ]]
+}
+
+@test "ST_QUIET disables st.abort prefix" {
+    ST_QUIET=1
+    source "$SCRIPT_DIR/st.bash"
+    DOING_MSG="Test Action"
+    run st.abort
+
+    [ "$status" -eq 1 ]
+    [[ ! "$output" =~ "st.abort>" ]]
+}
+
+@test "ST_QUIET disables st.do prefix" {
+    ST_QUIET=1
+    source "$SCRIPT_DIR/st.bash"
+    run st.do echo "test"
+
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"test"* ]]
+    [[ ! "$output" =~ "st.do>" ]]
+}
+
+@test "ST_QUIET workflow: doing -> done" {
+    ST_QUIET=1
+    source "$SCRIPT_DIR/st.bash"
+    output=$(st.doing "Build app" && st.done)
+
+    [[ "$output" == *"Build app"* ]]
+    [[ "$output" == *"[DONE]"* ]]
+    [[ ! "$output" =~ "st.doing>" ]]
+    [[ ! "$output" =~ "st.done>" ]]
+}

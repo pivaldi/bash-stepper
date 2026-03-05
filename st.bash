@@ -39,6 +39,34 @@ fi
 
 DOING_MSG=
 
+ST_H1=
+ST_H2=
+ST_H3=
+ST_DOING=
+ST_DONE=
+ST_SUCCESS=
+ST_NOTHING=
+ST_SKIPPED=
+ST_WARN=
+ST_FAIL=
+ST_ABORT=
+ST_DO=
+
+[ -z "${ST_QUIET:-}" ] && {
+    ST_H1='st.h1> '
+    ST_H2='st.h2> '
+    ST_H3='st.h3> '
+    ST_DOING='st.doing> '
+    ST_DONE='st.done> '
+    ST_SUCCESS='st.success> '
+    ST_NOTHING='st.nothingtd> '
+    ST_SKIPPED='st.skipped> '
+    ST_WARN='st.warn> '
+    ST_FAIL='st.fail '
+    ST_ABORT='st.abort> '
+    ST_DO='st.do> '
+}
+
 function st.cmd.exists() {
     command -v "$1" >/dev/null 2>&1
 }
@@ -49,58 +77,58 @@ function st.var.exists() {
 }
 
 function st.h1() {
-    echo -e "st.h1> ${BOLD}$1${OFFBOLD}"
+    echo -e "${ST_H1}${BOLD}$1${OFFBOLD}"
 }
 
 function st.h2() {
-    echo -e "st.h2> ${BOLD}$1${OFFBOLD}"
+    echo -e "${ST_H2}${BOLD}$1${OFFBOLD}"
 }
 
 function st.h3() {
-    echo -e "st.h3> ${BOLD}$1${OFFBOLD}"
+    echo -e "${ST_H3}${BOLD}$1${OFFBOLD}"
 }
 
 function st.doing() {
     DOING_MSG=$1
 
-    echo "st.doing> ${BLUE}${DOING_MSG:-…}$RESET_COLOR"
+    echo "${ST_DOING}${BLUE}${DOING_MSG:-…}$RESET_COLOR"
 }
 
 function st.done() {
     local DONE="${1:-[DONE]}"
 
-    echo "st.done> ${DOING_MSG:-} : ${GREEN}$DONE${RESET_COLOR}"
+    echo "${ST_DONE}${DOING_MSG:-} : ${GREEN}$DONE${RESET_COLOR}"
 }
 
 function st.success() {
     local MSG="${1:-[SUCCESS]}"
 
-    echo "st.success> ${BOLD}${GREEN}${MSG}${RESET_COLOR}${OFFBOLD}"
+    echo "${ST_SUCCESS}${BOLD}${GREEN}${MSG}${RESET_COLOR}${OFFBOLD}"
 }
 
 function st.nothing() {
     local MSG="${1:-[NOTHING TO DO]}"
-    echo "st.nothingtd> ${DOING_MSG:-} : ${GREEN}${MSG}${RESET_COLOR}"
+    echo "${ST_NOTHING}${DOING_MSG:-} : ${GREEN}${MSG}${RESET_COLOR}"
 }
 
 function st.skipped() {
     local MSG="${1:-[SKIPPED]}"
-    echo "st.skipped> ${DOING_MSG:-} : ${BLUE_CYAN}${MSG}${RESET_COLOR}"
+    echo "${ST_SKIPPED}${DOING_MSG:-} : ${BLUE_CYAN}${MSG}${RESET_COLOR}"
 }
 
 function st.warn() {
-    echo "st.warn> ${BOLD}${YELLOW}$1${RESET_COLOR}${OFFBOLD}"
+    echo "${ST_WARN}${BOLD}${YELLOW}$1${RESET_COLOR}${OFFBOLD}"
 }
 
 function st.fail() {
     local MSG="${1:-[FAILED]}"
-    echo -e "st.fail ${DOING_MSG:-} : ${RED}$MSG${RESET_COLOR}"
+    echo -e "${ST_FAIL}${DOING_MSG:-} : ${RED}$MSG${RESET_COLOR}"
     false
 }
 
 function st.abort() {
     local MSG="${1:-[ABORTED]}"
-    echo -e "st.abort> ${DOING_MSG:-} : ${BOLD}${RED}${MSG}${RESET_COLOR}${OFFBOLD}\n"
+    echo -e "${ST_ABORT}${DOING_MSG:-} : ${BOLD}${RED}${MSG}${RESET_COLOR}${OFFBOLD}\n"
     false
 
     exit 1
@@ -108,6 +136,6 @@ function st.abort() {
 
 function st.do() {
     local -a cmd=("$@")
-    echo "st.do> ${GRAY_LIGHT}${cmd[*]}${RESET_COLOR}"
+    echo "${ST_DO}${GRAY_LIGHT}${cmd[*]}${RESET_COLOR}"
     "${cmd[@]}"
 }

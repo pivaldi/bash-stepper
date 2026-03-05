@@ -134,6 +134,41 @@ run_test() {
     fi
 }
 
+# Test runner for ST_QUIET tests
+run_test_quiet() {
+    local test_name="$1"
+    local test_function="$2"
+
+    TESTS_RUN=$((TESTS_RUN + 1))
+
+    echo -ne "${BLUE}[TEST]${NC} $test_name ... "
+
+    # Create a subshell for test isolation with ST_QUIET set
+    local test_output
+    local test_result
+    test_output=$(
+        # Source the library fresh in subshell with ST_QUIET set
+        ST_QUIET=1 source "$SCRIPT_DIR/st.bash" 2>&1
+        # Run the test function
+        "$test_function" 2>&1
+    )
+    test_result=$?
+
+    if [ $test_result -eq 0 ]; then
+        echo -e "${GREEN}✓ PASS${NC}"
+        TESTS_PASSED=$((TESTS_PASSED + 1))
+        return 0
+    else
+        echo -e "${RED}✗ FAIL${NC}"
+        # Display test output if there is any
+        if [ -n "$test_output" ]; then
+            echo "$test_output"
+        fi
+        TESTS_FAILED=$((TESTS_FAILED + 1))
+        return 1
+    fi
+}
+
 # Test functions
 
 # Note: In non-terminal output, colors are automatically disabled
@@ -432,6 +467,136 @@ test_done_without_prior_doing() {
     assert_contains "$output" "st.done>" "should contain st.done>"
 }
 
+test_st_quiet_disables_h1_prefix() {
+    local output
+    output=$(st.h1 "Test Header")
+
+    assert_equals "Test Header" "$output" "should not contain st.h1> prefix"
+}
+
+test_st_quiet_disables_h2_prefix() {
+    local output
+    output=$(st.h2 "Test Header")
+
+    assert_equals "Test Header" "$output" "should not contain st.h2> prefix"
+}
+
+test_st_quiet_disables_h3_prefix() {
+    local output
+    output=$(st.h3 "Test Header")
+
+    assert_equals "Test Header" "$output" "should not contain st.h3> prefix"
+}
+
+test_st_quiet_disables_doing_prefix() {
+    local output
+    output=$(st.doing "Test Action")
+
+    assert_equals "Test Action" "$output" "should not contain st.doing> prefix"
+}
+
+test_st_quiet_disables_done_prefix() {
+    DOING_MSG="Test Action"
+    local output
+    output=$(st.done)
+
+    assert_contains "$output" "Test Action" "should contain action"
+    assert_contains "$output" "[DONE]" "should contain [DONE]"
+
+    # Should not contain prefix
+    if [[ "$output" =~ "st.done>" ]]; then
+        echo "Output contains st.done> prefix when ST_QUIET is set"
+        return 1
+    fi
+}
+
+test_st_quiet_disables_success_prefix() {
+    local output
+    output=$(st.success "Complete")
+
+    assert_equals "Complete" "$output" "should not contain st.success> prefix"
+}
+
+test_st_quiet_disables_nothing_prefix() {
+    DOING_MSG="Test Action"
+    local output
+    output=$(st.nothing)
+
+    assert_contains "$output" "Test Action" "should contain action"
+    assert_contains "$output" "[NOTHING TO DO]" "should contain [NOTHING TO DO]"
+
+    # Should not contain prefix
+    if [[ "$output" =~ "st.nothingtd>" ]]; then
+        echo "Output contains st.nothingtd> prefix when ST_QUIET is set"
+        return 1
+    fi
+}
+
+test_st_quiet_disables_skipped_prefix() {
+    DOING_MSG="Test Action"
+    local output
+    output=$(st.skipped)
+
+    assert_contains "$output" "Test Action" "should contain action"
+    assert_contains "$output" "[SKIPPED]" "should contain [SKIPPED]"
+
+    # Should not contain prefix
+    if [[ "$output" =~ "st.skipped>" ]]; then
+        echo "Output contains st.skipped> prefix when ST_QUIET is set"
+        return 1
+    fi
+}
+
+test_st_quiet_disables_warn_prefix() {
+    local output
+    output=$(st.warn "Warning message")
+
+    assert_equals "Warning message" "$output" "should not contain st.warn> prefix"
+}
+
+test_st_quiet_disables_fail_prefix() {
+    DOING_MSG="Test Action"
+    local output
+    output=$(st.fail) || true
+
+    assert_contains "$output" "Test Action" "should contain action"
+    assert_contains "$output" "[FAILED]" "should contain [FAILED]"
+
+    # Should not contain prefix
+    if [[ "$output" =~ "st.fail" ]]; then
+        echo "Output contains st.fail prefix when ST_QUIET is set"
+        return 1
+    fi
+}
+
+test_st_quiet_disables_do_prefix() {
+    local output
+    output=$(st.do echo "test" 2>&1)
+
+    assert_contains "$output" "test" "should contain command output"
+
+    # Should not contain prefix
+    if [[ "$output" =~ "st.do>" ]]; then
+        echo "Output contains st.do> prefix when ST_QUIET is set"
+        return 1
+    fi
+}
+
+test_st_quiet_workflow() {
+    local output
+    output=$(st.doing "Build app" && st.done)
+
+    assert_contains "$output" "Build app" "should contain action"
+    assert_contains "$output" "[DONE]" "should contain [DONE]"
+
+    # Should not contain prefixes
+    if [[ "$output" =~ "st.doing>" ]] || [[ "$output" =~ "st.done>" ]]; then
+        echo "Output contains st. prefixes when ST_QUIET is set"
+        return 1
+    fi
+    return 0
+}
+
 # Main test execution
 main() {
     echo -e "${BLUE}========================================${NC}"
@@ -488,6 +653,20 @@ main() {
     run_test "st.doing with special characters" test_doing_with_special_characters
     run_test "No ANSI codes in non-terminal" test_output_has_no_ansi_codes_in_non_terminal
     run_test "st.done without prior st.doing" test_done_without_prior_doing
+
+    # ST_QUIET tests
+    run_test_quiet "ST_QUIET disables st.h1 prefix" test_st_quiet_disables_h1_prefix
+    run_test_quiet "ST_QUIET disables st.h2 prefix" test_st_quiet_disables_h2_prefix
+    run_test_quiet "ST_QUIET disables st.h3 prefix" test_st_quiet_disables_h3_prefix
+    run_test_quiet "ST_QUIET disables st.doing prefix" test_st_quiet_disables_doing_prefix
+    run_test_quiet "ST_QUIET disables st.done prefix" test_st_quiet_disables_done_prefix
+    run_test_quiet "ST_QUIET disables st.success prefix" test_st_quiet_disables_success_prefix
+    run_test_quiet "ST_QUIET disables st.nothing prefix" test_st_quiet_disables_nothing_prefix
+    run_test_quiet "ST_QUIET disables st.skipped prefix" test_st_quiet_disables_skipped_prefix
+    run_test_quiet "ST_QUIET disables st.warn prefix" test_st_quiet_disables_warn_prefix
+    run_test_quiet "ST_QUIET disables st.fail prefix" test_st_quiet_disables_fail_prefix
+    run_test_quiet "ST_QUIET disables st.do prefix" test_st_quiet_disables_do_prefix
+    run_test_quiet "ST_QUIET workflow" test_st_quiet_workflow
 
     # Summary
     echo

@@ -236,6 +236,59 @@ This means:
 
 No configuration needed - it just works!
 
+## Quiet Mode
+
+Set the `ST_QUIET` environment variable to suppress the `st.xxx>` prefixes while keeping the message content:
+
+```bash
+# Normal output
+source st.bash
+st.h1 "Deployment"
+st.doing "Building app"
+st.done
+# Output:
+# st.h1> Deployment
+# st.doing> Building app
+# st.done> Building app : [DONE]
+
+# Quiet mode - no prefixes
+ST_QUIET=1 source st.bash
+st.h1 "Deployment"
+st.doing "Building app"
+st.done
+# Output:
+# Deployment
+# Building app
+# Building app : [DONE]
+```
+
+**Use cases for quiet mode:**
+- Cleaner output for end-user facing scripts
+- Integration with other logging systems
+- When you want progress tracking without the visual prefixes
+- Generating clean output for reports or documentation
+
+**Example script with quiet mode toggle:**
+
+```bash
+#!/usr/bin/env bash
+# Enable quiet mode with: ST_QUIET=1 ./script.sh
+
+source ./st.bash
+
+st.h1 "Data Processing Pipeline"
+
+st.doing "Loading data"
+st.do ./load-data.sh
+st.done
+
+st.doing "Processing records"
+st.do ./process.sh
+st.done "PROCESSED 1000 RECORDS"
+
+st.success "Pipeline complete!"
+```
+
 ## Testing
 
 The library includes a comprehensive test suite:
@@ -249,8 +302,8 @@ bats st_test.bats
 ```
 
 Both test suites include comprehensive coverage:
-- **test-st.sh**: 36 tests covering all functions, helpers, and workflows
-- **st_test.bats**: 42 tests including performance, helper functions, and edge cases
+- **test-st.sh**: 48 tests covering all functions, helpers, ST_QUIET mode, and workflows
+- **st_test.bats**: 54 tests including performance, helper functions, ST_QUIET mode, and edge cases
 
 ## Design Philosophy
 
