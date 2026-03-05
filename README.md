@@ -238,56 +238,106 @@ No configuration needed - it just works!
 
 ## Quiet Mode
 
-Set the `ST_QUIET` environment variable to suppress the `st.xxx>` prefixes while keeping the message content:
-
-```bash
-# Normal output
-source st.bash
-st.h1 "Deployment"
-st.doing "Building app"
-st.done
-# Output:
-# st.h1> Deployment
-# st.doing> Building app
-# st.done> Building app : [DONE]
-
-# Quiet mode - no prefixes
-ST_QUIET=1 source st.bash
-st.h1 "Deployment"
-st.doing "Building app"
-st.done
-# Output:
-# Deployment
-# Building app
-# Building app : [DONE]
-```
-
-**Use cases for quiet mode:**
-- Cleaner output for end-user facing scripts
-- Integration with other logging systems
-- When you want progress tracking without the visual prefixes
-- Generating clean output for reports or documentation
-
-**Example script with quiet mode toggle:**
+Use the `st.quiet` and `st.unquiet` functions to **dynamically toggle prefix visibility** during script execution:
 
 ```bash
 #!/usr/bin/env bash
-# Enable quiet mode with: ST_QUIET=1 ./script.sh
-
 source ./st.bash
 
+# With prefixes (normal mode)
+st.h1 "Deployment Pipeline"
+st.doing "Setup root project"
+st.do mise run setup
+st.done
+# Output:
+# st.h1> Deployment Pipeline
+# st.doing> Setup root project
+# st.do> mise run setup
+# st.done> Setup root project : [DONE]
+
+# Without prefixes (quiet mode)
+st.quiet
+st.doing "Install/Update tools"
+st.do mise run tools:update
+st.done
+# Output:
+# Install/Update tools
+# mise run tools:update
+# Install/Update tools : [DONE]
+
+# Back to normal mode
+st.unquiet
+st.doing "Running tests"
+st.do npm test
+st.done
+# Output:
+# st.doing> Running tests
+# st.do> npm test
+# st.done> Running tests : [DONE]
+```
+
+**Dynamic toggling during execution:**
+
+```bash
+#!/usr/bin/env bash
+source ./st.bash
+
+# Show section headers with prefixes
 st.h1 "Data Processing Pipeline"
 
-st.doing "Loading data"
-st.do ./load-data.sh
+# Run detailed setup steps with prefixes
+st.doing "Validating prerequisites"
+st.do ./validate.sh
 st.done
 
-st.doing "Processing records"
+# Run the main processing quietly (cleaner output for logs)
+st.quiet
+st.doing "Processing 10,000 records"
 st.do ./process.sh
-st.done "PROCESSED 1000 RECORDS"
+st.done
 
-st.success "Pipeline complete!"
+# Show final results with prefixes
+st.unquiet
+st.success "Pipeline complete! 🚀"
 ```
+
+**Setting quiet mode via environment variable:**
+
+You can also enable quiet mode globally by setting `ST_QUIET=true` before sourcing the library:
+
+```bash
+#!/usr/bin/env bash
+ST_QUIET=true source ./st.bash
+
+st.h1 "Deployment"
+st.doing "Building"
+st.done
+# Output (no prefixes):
+# Deployment
+# Building
+# Building : [DONE]
+
+# You can still toggle dynamically even when initialized via environment
+st.unquiet
+st.success "Complete!"
+# Output:
+# st.success> Complete!
+```
+
+Or pass it when executing a script:
+
+```bash
+# Run entire script in quiet mode
+ST_QUIET=true ./my-script.sh
+```
+
+**Use cases for quiet mode:**
+- Toggle quiet mode for different script sections
+- Show important steps with prefixes, hide verbose ones without
+- Cleaner output for end-user facing scripts
+- Integration with other logging systems
+- Generating clean output for reports or documentation
+- Run entire scripts in quiet mode via environment variable
 
 ## Testing
 
@@ -302,8 +352,8 @@ bats st_test.bats
 ```
 
 Both test suites include comprehensive coverage:
-- **test-st.sh**: 48 tests covering all functions, helpers, ST_QUIET mode, and workflows
-- **st_test.bats**: 54 tests including performance, helper functions, ST_QUIET mode, and edge cases
+- **test-st.sh**: 49 tests covering all functions, helpers, ST_QUIET mode, dynamic toggling, and workflows
+- **st_test.bats**: 56 tests including performance, helper functions, ST_QUIET mode, dynamic toggling, and edge cases
 
 ## Design Philosophy
 

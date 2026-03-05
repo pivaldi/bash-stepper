@@ -369,10 +369,29 @@ setup() {
     [ "$elapsed" -lt 100000000 ]
 }
 
+# Test st.quiet and st.unquiet functions
+@test "st.quiet and st.unquiet toggle quiet mode" {
+    source "$SCRIPT_DIR/st.bash"
+
+    # Default should have prefix
+    run st.h1 "Test"
+    [[ "$output" == *"st.h1>"* ]]
+
+    # After st.quiet, no prefix
+    st.quiet
+    run st.h1 "Test"
+    [[ "$output" == "Test" ]]
+
+    # After st.unquiet, prefix again
+    st.unquiet
+    run st.h1 "Test"
+    [[ "$output" == *"st.h1>"* ]]
+}
+
 # Test ST_QUIET environment variable
 @test "ST_QUIET disables st.h1 prefix" {
-    ST_QUIET=1
     source "$SCRIPT_DIR/st.bash"
+    st.quiet
     run st.h1 "Test Header"
 
     [ "$status" -eq 0 ]
@@ -381,8 +400,8 @@ setup() {
 }
 
 @test "ST_QUIET disables st.h2 prefix" {
-    ST_QUIET=1
     source "$SCRIPT_DIR/st.bash"
+    st.quiet
     run st.h2 "Test Header"
 
     [ "$status" -eq 0 ]
@@ -391,8 +410,8 @@ setup() {
 }
 
 @test "ST_QUIET disables st.h3 prefix" {
-    ST_QUIET=1
     source "$SCRIPT_DIR/st.bash"
+    st.quiet
     run st.h3 "Test Header"
 
     [ "$status" -eq 0 ]
@@ -401,8 +420,8 @@ setup() {
 }
 
 @test "ST_QUIET disables st.doing prefix" {
-    ST_QUIET=1
     source "$SCRIPT_DIR/st.bash"
+    st.quiet
     run st.doing "Test Action"
 
     [ "$status" -eq 0 ]
@@ -411,8 +430,8 @@ setup() {
 }
 
 @test "ST_QUIET disables st.done prefix" {
-    ST_QUIET=1
     source "$SCRIPT_DIR/st.bash"
+    st.quiet
     DOING_MSG="Test Action"
     run st.done
 
@@ -423,8 +442,8 @@ setup() {
 }
 
 @test "ST_QUIET disables st.success prefix" {
-    ST_QUIET=1
     source "$SCRIPT_DIR/st.bash"
+    st.quiet
     run st.success "Complete"
 
     [ "$status" -eq 0 ]
@@ -433,8 +452,8 @@ setup() {
 }
 
 @test "ST_QUIET disables st.nothing prefix" {
-    ST_QUIET=1
     source "$SCRIPT_DIR/st.bash"
+    st.quiet
     DOING_MSG="Test Action"
     run st.nothing
 
@@ -445,8 +464,8 @@ setup() {
 }
 
 @test "ST_QUIET disables st.skipped prefix" {
-    ST_QUIET=1
     source "$SCRIPT_DIR/st.bash"
+    st.quiet
     DOING_MSG="Test Action"
     run st.skipped
 
@@ -457,8 +476,8 @@ setup() {
 }
 
 @test "ST_QUIET disables st.warn prefix" {
-    ST_QUIET=1
     source "$SCRIPT_DIR/st.bash"
+    st.quiet
     run st.warn "Warning message"
 
     [ "$status" -eq 0 ]
@@ -467,8 +486,8 @@ setup() {
 }
 
 @test "ST_QUIET disables st.fail prefix" {
-    ST_QUIET=1
     source "$SCRIPT_DIR/st.bash"
+    st.quiet
     DOING_MSG="Test Action"
     run st.fail
 
@@ -479,8 +498,8 @@ setup() {
 }
 
 @test "ST_QUIET disables st.abort prefix" {
-    ST_QUIET=1
     source "$SCRIPT_DIR/st.bash"
+    st.quiet
     DOING_MSG="Test Action"
     run st.abort
 
@@ -489,8 +508,8 @@ setup() {
 }
 
 @test "ST_QUIET disables st.do prefix" {
-    ST_QUIET=1
     source "$SCRIPT_DIR/st.bash"
+    st.quiet
     run st.do echo "test"
 
     [ "$status" -eq 0 ]
@@ -499,12 +518,31 @@ setup() {
 }
 
 @test "ST_QUIET workflow: doing -> done" {
-    ST_QUIET=1
     source "$SCRIPT_DIR/st.bash"
+    st.quiet
     output=$(st.doing "Build app" && st.done)
 
     [[ "$output" == *"Build app"* ]]
     [[ "$output" == *"[DONE]"* ]]
     [[ ! "$output" =~ "st.doing>" ]]
     [[ ! "$output" =~ "st.done>" ]]
+}
+
+@test "ST_QUIET can be toggled dynamically" {
+    source "$SCRIPT_DIR/st.bash"
+
+    # Start with ST_QUIET off (default)
+    run st.h1 "First"
+    [[ "$output" == *"st.h1>"* ]]
+
+    # Toggle ST_QUIET on
+    st.quiet
+    run st.h1 "Second"
+    [[ "$output" == "Second" ]]
+    [[ ! "$output" =~ "st.h1>" ]]
+
+    # Toggle ST_QUIET off again
+    st.unquiet
+    run st.h1 "Third"
+    [[ "$output" == *"st.h1>"* ]]
 }

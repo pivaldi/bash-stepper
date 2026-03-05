@@ -134,7 +134,7 @@ run_test() {
     fi
 }
 
-# Test runner for ST_QUIET tests
+# Test runner for ST_QUIET tests (uses st.quiet function)
 run_test_quiet() {
     local test_name="$1"
     local test_function="$2"
@@ -143,12 +143,14 @@ run_test_quiet() {
 
     echo -ne "${BLUE}[TEST]${NC} $test_name ... "
 
-    # Create a subshell for test isolation with ST_QUIET set
+    # Create a subshell for test isolation with quiet mode enabled
     local test_output
     local test_result
     test_output=$(
-        # Source the library fresh in subshell with ST_QUIET set
-        ST_QUIET=1 source "$SCRIPT_DIR/st.bash" 2>&1
+        # Source the library fresh in subshell
+        source "$SCRIPT_DIR/st.bash" 2>&1
+        # Enable quiet mode using st.quiet
+        st.quiet
         # Run the test function
         "$test_function" 2>&1
     )
@@ -597,6 +599,42 @@ test_st_quiet_workflow() {
     return 0
 }
 
+test_st_quiet_function() {
+    local output
+
+    # Default should have prefix
+    output=$(st.h1 "Test")
+    assert_contains "$output" "st.h1>" "should have prefix by default"
+
+    # After st.quiet, no prefix
+    st.quiet
+    output=$(st.h1 "Test")
+    assert_equals "Test" "$output" "should not have prefix after st.quiet"
+
+    # After st.unquiet, prefix again
+    st.unquiet
+    output=$(st.h1 "Test")
+    assert_contains "$output" "st.h1>" "should have prefix after st.unquiet"
+}
+
+test_st_quiet_dynamic_toggle() {
+    local output
+
+    # Start in normal mode
+    output=$(st.h1 "First")
+    assert_contains "$output" "st.h1>" "should have prefix when quiet mode is off"
+
+    # Toggle quiet mode on
+    st.quiet
+    output=$(st.h1 "Second")
+    assert_equals "Second" "$output" "should not have prefix when quiet mode is on"
+
+    # Toggle quiet mode off again
+    st.unquiet
+    output=$(st.h1 "Third")
+    assert_contains "$output" "st.h1>" "should have prefix when quiet mode is off again"
+}
+
 # Main test execution
 main() {
     echo -e "${BLUE}========================================${NC}"
@@ -655,6 +693,7 @@ main() {
     run_test "st.done without prior st.doing" test_done_without_prior_doing
 
     # ST_QUIET tests
+    run_test "st.quiet and st.unquiet functions" test_st_quiet_function
     run_test_quiet "ST_QUIET disables st.h1 prefix" test_st_quiet_disables_h1_prefix
     run_test_quiet "ST_QUIET disables st.h2 prefix" test_st_quiet_disables_h2_prefix
     run_test_quiet "ST_QUIET disables st.h3 prefix" test_st_quiet_disables_h3_prefix
@@ -667,6 +706,7 @@ main() {
     run_test_quiet "ST_QUIET disables st.fail prefix" test_st_quiet_disables_fail_prefix
     run_test_quiet "ST_QUIET disables st.do prefix" test_st_quiet_disables_do_prefix
     run_test_quiet "ST_QUIET workflow" test_st_quiet_workflow
+    run_test "ST_QUIET dynamic toggle" test_st_quiet_dynamic_toggle
 
     # Summary
     echo
